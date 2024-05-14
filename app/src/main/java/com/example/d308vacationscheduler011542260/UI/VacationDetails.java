@@ -64,6 +64,9 @@ public class VacationDetails extends AppCompatActivity {
 
     List<Excursion> filteredExcursions = new ArrayList<>();
 
+    Random ran = new Random();
+    int numAlert = ran.nextInt(9999);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -86,6 +89,33 @@ public class VacationDetails extends AppCompatActivity {
         editHotelName.setText(hotelName);
         editStartDate = findViewById(R.id.startdate);
         editEndDate = findViewById(R.id.enddate);
+
+        FloatingActionButton fab = findViewById(R.id.floatingActionButton2);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                for (Vacation vac : repository.getmAllVacations()) {
+                    if (vac.getVacationID() == vacationID) currentVacation = vac;
+                }
+                tempVacation = currentVacation;
+                tempVacationId = vacationID;
+                Intent intent = new Intent(VacationDetails.this, ExcursionDetails.class);
+                startActivity(intent);
+            }
+        });
+
+        repository = new Repository(getApplication());
+
+        RecyclerView recyclerView = findViewById(R.id.excursionrecyclerview);
+        final ExcursionAdapter excursionAdapter = new ExcursionAdapter(this);
+        recyclerView.setAdapter(excursionAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        for (Excursion e : repository.getmAllExcursions()) {
+            if (e.getVacationID() == vacationID) filteredExcursions.add(e);
+        }
+
+        excursionAdapter.setmExcursions(filteredExcursions);
 
         if (setStartDate != null)
             try {
@@ -168,6 +198,25 @@ public class VacationDetails extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        RecyclerView recyclerView = findViewById(R.id.excursionrecyclerview);
+        final ExcursionAdapter excursionAdapter = new ExcursionAdapter(this);
+        recyclerView.setAdapter(excursionAdapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        filteredExcursions.clear();
+
+        for (Excursion e : repository.getmAllExcursions()) {
+            if (e.getVacationID() == vacationID) filteredExcursions.add(e);
+        }
+
+        excursionAdapter.setmExcursions(filteredExcursions);
+
+        updateLabel(editStartDate, myCalendarStart);
+        updateLabel(editEndDate, myCalendarEnd);
+    }
+
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             this.finish();
@@ -175,6 +224,21 @@ public class VacationDetails extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.vacationsave) {
+            if (!isValidDate(editStartDate.getText().toString()) || !isValidDate(editEndDate.getText().toString())) {
+                Toast.makeText(this, "Please enter valid date format (MM/dd/yy)", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            try {
+                Date startDate = sdf.parse(editStartDate.getText().toString());
+                Date endDate = sdf.parse(editEndDate.getText().toString());
+                if (startDate.after(endDate)) {
+                    Toast.makeText(this, "End date must be after the start date", Toast.LENGTH_SHORT).show();
+                    return true;
+                }
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
 
             String startDateString = editStartDate.getText().toString();
             String endDateString = editEndDate.getText().toString();
@@ -212,6 +276,72 @@ public class VacationDetails extends AppCompatActivity {
             }
         }
 
+        if (item.getItemId() == R.id.vacationshare) {
+            Intent sentIntent = new Intent();
+            sentIntent.setAction(Intent.ACTION_SEND);
+            sentIntent.putExtra(Intent.EXTRA_TITLE, "Shared Vacation");
+
+            StringBuilder sharedString = new StringBuilder();
+            sharedString.append("Vacation Title: " + editTitle.getText().toString() + "\n");
+            sharedString.append("Hotel Name: " + editHotelName.getText().toString() + "\n");
+            sharedString.append("Start Date: " + editStartDate.getText().toString() + "\n");
+            sharedString.append("End Date: " + editEndDate.getText().toString() + "\n");
+            if (!filteredExcursions.isEmpty()) {
+                sharedString.append("Excursions: \n");
+                for (int i = 0; i < filteredExcursions.size(); i++) {
+                    sharedString.append(filteredExcursions.get(i).getExcursionDate() + ": " + filteredExcursions.get(i).getExcursionTitle() + "\n");
+                }
+            } else {
+                sharedString.append("This vacation has no excursions.");
+            }
+            sentIntent.putExtra(Intent.EXTRA_TEXT, sharedString.toString());
+            sentIntent.setType("text/plain");
+            Intent shareIntent = Intent.createChooser(sentIntent, null);
+            startActivity(shareIntent);
+            return true;
+        }
+
+        if (item.getItemId() == R.id.vacationnotify) {
+            String startDateFromScreen = editStartDate.getText().toString();
+            String startNotification = "Vacation " + title + " is starting";
+            notifyHelper(startDateFromScreen, startNotification);
+            String endDateFromScreen = editEndDate.getText().toString();
+            String endNotification = "Vacation " + title + " is ending";
+            notifyHelper(endDateFromScreen, endNotification);
+
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void notifyHelper(String dateFromScreen, String notification) {
+        String myFormat = "MM/dd/yy";
+        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+        Date myDate = null;
+        try {
+            myDate = sdf.parse(dateFromScreen);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        try {
+            Long trigger = myDate.getTime();
+            Intent intent = new Intent(VacationDetails.this, MyReceiver.class);
+            intent.putExtra("key", notification);
+            PendingIntent sender = PendingIntent.getBroadcast(VacationDetails.this, numAlert, intent, PendingIntent.FLAG_IMMUTABLE);
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(AlarmManager.RTC_WAKEUP, trigger, sender);
+        } catch (Exception e) {
+
+        }
+    }
+
+    private boolean isValidDate(String dateStr) {
+        try {
+            sdf.parse(dateStr);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 }
