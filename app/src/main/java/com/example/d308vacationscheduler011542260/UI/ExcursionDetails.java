@@ -38,9 +38,18 @@ public class ExcursionDetails extends AppCompatActivity {
     String excursionTitle;
     int excursionID;
     int vacationID;
-    EditText editTitle;;
+    String setDate;
+    EditText editTitle;
+    TextView editExcursionDate;
+    DatePickerDialog.OnDateSetListener excursionDate;
+    final Calendar myCalendar = Calendar.getInstance();
+    String myFormat = "MM/dd/yy";
+    SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
     Excursion currentExcursion;
     Repository repository;
+
+    Random ran = new Random();
+    int numAlert = ran.nextInt(9999);
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -56,10 +65,49 @@ public class ExcursionDetails extends AppCompatActivity {
 
         repository = new Repository(getApplication());
         editTitle = findViewById(R.id.excursionTitle);
+        editExcursionDate = findViewById(R.id.excursionDate);
         excursionTitle = getIntent().getStringExtra("title");
         excursionID = getIntent().getIntExtra("id", -1);
         vacationID = getIntent().getIntExtra("vacationID", -1);
+        setDate = getIntent().getStringExtra("excursionDate");
         editTitle.setText(excursionTitle);
+
+        if (setDate != null)
+            try {
+                Date date = sdf.parse(setDate);
+                myCalendar.setTime(date);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+        excursionDate = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                myCalendar.set(Calendar.YEAR, year);
+                myCalendar.set(Calendar.MONTH, monthOfYear);
+                myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                updateLabel(editExcursionDate, myCalendar);
+            }
+
+        };
+
+        editExcursionDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Date date;
+                String info = editExcursionDate.getText().toString();
+                if (info.equals("")) info = setDate;
+                try {
+                    myCalendar.setTime(sdf.parse(info));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                new DatePickerDialog(ExcursionDetails.this, excursionDate, myCalendar
+                        .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                        myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
     }
 
     private void updateLabel(TextView edit, Calendar myCalendar) {
@@ -74,6 +122,13 @@ public class ExcursionDetails extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        updateLabel(editExcursionDate, myCalendar);
+    }
+
     public boolean onOptionsItemSelected(MenuItem item) {
 
         if (item.getItemId() == android.R.id.home) {
@@ -83,15 +138,17 @@ public class ExcursionDetails extends AppCompatActivity {
 
         if (item.getItemId() == R.id.excursionsave) {
 
+            String dateString = editExcursionDate.getText().toString();
+
             Excursion excursion;
             if (excursionID == -1) {
                 if (repository.getmAllExcursions().size() == 0) excursionID = 1;
                 else excursionID = repository.getmAllExcursions().get(repository.getmAllExcursions().size() - 1).getExcursionID() + 1;
-                excursion = new Excursion(excursionID, editTitle.getText().toString(), vacationID, "dateString");
+                excursion = new Excursion(excursionID, editTitle.getText().toString(), vacationID, dateString);
                 repository.insert(excursion);
                 this.finish();
             } else {
-                excursion = new Excursion(excursionID, editTitle.getText().toString(), vacationID, "dateString");
+                excursion = new Excursion(excursionID, editTitle.getText().toString(), vacationID, dateString);
                 repository.update(excursion);
                 this.finish();
             }

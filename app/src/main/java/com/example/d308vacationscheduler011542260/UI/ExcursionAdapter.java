@@ -10,7 +10,6 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.example.d308vacationscheduler011542260.R;
 import com.example.d308vacationscheduler011542260.entities.Excursion;
 
@@ -45,6 +44,7 @@ public class ExcursionAdapter extends RecyclerView.Adapter<ExcursionAdapter.Excu
                     intent.putExtra("id", current.getExcursionID());
                     intent.putExtra("title", current.getExcursionTitle());
                     intent.putExtra("vacationID", current.getVacationID());
+                    intent.putExtra("excursionDate", current.getExcursionDate());
                     context.startActivity(intent);
                 }
             });
