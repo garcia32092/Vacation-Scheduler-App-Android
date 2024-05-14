@@ -331,6 +331,7 @@ public class VacationDetails extends AppCompatActivity {
             PendingIntent sender = PendingIntent.getBroadcast(VacationDetails.this, numAlert, intent, PendingIntent.FLAG_IMMUTABLE);
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             alarmManager.set(AlarmManager.RTC_WAKEUP, trigger, sender);
+            numAlert = ran.nextInt(9999);
         } catch (Exception e) {
 
         }

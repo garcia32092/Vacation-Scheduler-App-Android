@@ -220,6 +220,7 @@ public class ExcursionDetails extends AppCompatActivity {
             PendingIntent sender = PendingIntent.getBroadcast(ExcursionDetails.this, numAlert, intent, PendingIntent.FLAG_IMMUTABLE);
             AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             alarmManager.set(AlarmManager.RTC_WAKEUP, trigger, sender);
+            numAlert = ran.nextInt(9999);
         } catch (Exception e) {
 
         }
