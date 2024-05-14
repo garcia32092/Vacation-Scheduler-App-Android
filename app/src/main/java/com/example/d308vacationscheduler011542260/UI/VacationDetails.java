@@ -42,13 +42,27 @@ public class VacationDetails extends AppCompatActivity {
     String title;
     String hotelName;
     int vacationID;
+    public static int tempVacationId;
+    public static Vacation tempVacation;
+    String setStartDate;
+    String setEndDate;
 
     EditText editTitle;
     EditText editHotelName;
+    TextView editStartDate;
+    TextView editEndDate;
     Vacation currentVacation;
     int numExcursions;
+    DatePickerDialog.OnDateSetListener startDate;
+    DatePickerDialog.OnDateSetListener endDate;
+    final Calendar myCalendarStart = Calendar.getInstance();
+    final Calendar myCalendarEnd = Calendar.getInstance();
+    String myFormat = "MM/dd/yy";
+    SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
 
     Repository repository;
+
+    List<Excursion> filteredExcursions = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,9 +76,91 @@ public class VacationDetails extends AppCompatActivity {
         });
 
         editTitle = findViewById(R.id.vacationTitle);
+        editHotelName = findViewById(R.id.hotelName);
         title = getIntent().getStringExtra("title");
+        hotelName = getIntent().getStringExtra("hotel name");
         vacationID = getIntent().getIntExtra("id", -1);
+        setStartDate = getIntent().getStringExtra("start date");
+        setEndDate = getIntent().getStringExtra("end date");
         editTitle.setText(title);
+        editHotelName.setText(hotelName);
+        editStartDate = findViewById(R.id.startdate);
+        editEndDate = findViewById(R.id.enddate);
+
+        if (setStartDate != null)
+            try {
+                Date startDate = sdf.parse(setStartDate);
+                Date endDate = sdf.parse(setEndDate);
+                myCalendarStart.setTime(startDate);
+                myCalendarEnd.setTime(endDate);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+
+        startDate = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                myCalendarStart.set(Calendar.YEAR, year);
+                myCalendarStart.set(Calendar.MONTH, monthOfYear);
+                myCalendarStart.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                updateLabel(editStartDate, myCalendarStart);
+            }
+
+        };
+
+        editStartDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Date date;
+                String info = editStartDate.getText().toString();
+                if (info.equals("")) info = setStartDate;
+                try {
+                    myCalendarStart.setTime(sdf.parse(info));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                new DatePickerDialog(VacationDetails.this, startDate, myCalendarStart
+                        .get(Calendar.YEAR), myCalendarStart.get(Calendar.MONTH),
+                        myCalendarStart.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+
+        endDate = new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                myCalendarEnd.set(Calendar.YEAR, year);
+                myCalendarEnd.set(Calendar.MONTH, monthOfYear);
+                myCalendarEnd.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+                updateLabel(editEndDate, myCalendarEnd);
+            }
+
+        };
+
+        editEndDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Date date;
+                String info = editEndDate.getText().toString();
+                if (info.equals("")) info = setEndDate;
+                try {
+                    myCalendarEnd.setTime(sdf.parse(info));
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                new DatePickerDialog(VacationDetails.this, endDate, myCalendarEnd
+                        .get(Calendar.YEAR), myCalendarEnd.get(Calendar.MONTH),
+                        myCalendarEnd.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+    }
+
+    private void updateLabel(TextView edit, Calendar myCalendar) {
+        String myFormat = "MM/dd/yy";
+        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+
+        edit.setText(sdf.format(myCalendar.getTime()));
     }
 
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -79,16 +175,20 @@ public class VacationDetails extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.vacationsave) {
+
+            String startDateString = editStartDate.getText().toString();
+            String endDateString = editEndDate.getText().toString();
+
             Vacation vacation;
             if (vacationID == -1) {
                 if (repository.getmAllVacations().size() == 0) vacationID = 1;
                 else vacationID = repository.getmAllVacations().get(repository.getmAllVacations().size() - 1).getVacationID() + 1;
-                vacation = new Vacation(vacationID, editTitle.getText().toString(), editHotelName.getText().toString(), "default start date", "default end date");
+                vacation = new Vacation(vacationID, editTitle.getText().toString(), editHotelName.getText().toString(), startDateString, endDateString);
                 repository.insert(vacation);
                 this.finish();
             }
             else {
-                vacation = new Vacation(vacationID, editTitle.getText().toString(), editHotelName.getText().toString(), "default start date", "default end date");
+                vacation = new Vacation(vacationID, editTitle.getText().toString(), editHotelName.getText().toString(), startDateString, endDateString);
                 repository.update(vacation);
                 this.finish();
             }

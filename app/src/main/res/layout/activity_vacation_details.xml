@@ -49,6 +49,56 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Hotel Name" />
+
+                <EditText
+                    android:id="@+id/hotelName"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Start Date" />
+
+                <EditText
+                    android:id="@+id/startdate"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="none" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="End Date" />
+
+                <EditText
+                    android:id="@+id/enddate"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="none" />
+            </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 
