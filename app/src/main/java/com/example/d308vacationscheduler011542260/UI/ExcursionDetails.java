@@ -137,8 +137,36 @@ public class ExcursionDetails extends AppCompatActivity {
         }
 
         if (item.getItemId() == R.id.excursionsave) {
+            if (!isValidDate(editExcursionDate.getText().toString())) {
+                Toast.makeText(this, "Please enter valid date format (MM/dd/yy)", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+
+            Vacation vacation = null;
+            for (Vacation vac : repository.getmAllVacations()) {
+                if (vac.getVacationID() == vacationID)
+                    vacation = vac;
+            }
+
+            if (vacationID == -1) {
+                vacation = VacationDetails.tempVacation;
+                vacationID = VacationDetails.tempVacationId;
+            }
 
             String dateString = editExcursionDate.getText().toString();
+
+            if (vacation != null)
+                try {
+                    Date date = sdf.parse(dateString);
+                    Date vacStartDate = sdf.parse(vacation.getStartDate());
+                    Date vacEndDate = sdf.parse(vacation.getEndDate());
+                    if (date.before(vacStartDate) || date.after(vacEndDate)) {
+                        Toast.makeText(this, "Excursion date must be between the vacation start and end dates", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
 
             Excursion excursion;
             if (excursionID == -1) {
@@ -165,6 +193,44 @@ public class ExcursionDetails extends AppCompatActivity {
             ExcursionDetails.this.finish();
         }
 
+        if (item.getItemId() == R.id.excursionnotify) {
+            String startDateFromScreen = editExcursionDate.getText().toString();
+            String startNotification = "Excursion: " + excursionTitle + " is today!";
+            notifyHelper(startDateFromScreen, startNotification);
+
+            return true;
+        }
+
         return super.onOptionsItemSelected(item);
+    }
+
+    private void notifyHelper(String dateFromScreen, String notification) {
+        String myFormat = "MM/dd/yy";
+        SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.US);
+        Date myDate = null;
+        try {
+            myDate = sdf.parse(dateFromScreen);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        try {
+            Long trigger = myDate.getTime();
+            Intent intent = new Intent(ExcursionDetails.this, MyReceiver.class);
+            intent.putExtra("key", notification);
+            PendingIntent sender = PendingIntent.getBroadcast(ExcursionDetails.this, numAlert, intent, PendingIntent.FLAG_IMMUTABLE);
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+            alarmManager.set(AlarmManager.RTC_WAKEUP, trigger, sender);
+        } catch (Exception e) {
+
+        }
+    }
+
+    private boolean isValidDate(String dateStr) {
+        try {
+            sdf.parse(dateStr);
+            return true;
+        } catch (ParseException e) {
+            return false;
+        }
     }
 }

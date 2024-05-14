@@ -54,7 +54,6 @@ public class VacationList extends AppCompatActivity {
         vacationAdapter.setVacations(allVacations);
         //System.out.println(getIntent().getStringExtra("test"));
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_vacation_list, menu);
