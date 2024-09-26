@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+/app/release/
+vacation_scheduler_key.jks
