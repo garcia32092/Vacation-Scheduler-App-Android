@@ -1,8 +1,10 @@
-# D308 Vacation Scheduler Application
+# Vacation Scheduler Application
 
 ## Purpose
 
-The D308 Vacation Scheduler Application is designed to help users plan and manage their vacations efficiently. The application allows users to schedule vacations and excursions, view vacation details, and receive notifications about their upcoming trips.
+The Vacation Scheduler Application is designed to help users plan and manage their vacations efficiently. The application allows users to schedule vacations and excursions, view vacation details, and receive notifications about their upcoming trips.
+
+I created this app for the D308 Mobile Application Development (Android) course while attending the Software Engineering program at WGU.
 
 ## Navigating the Application
 
@@ -31,7 +33,7 @@ The D308 Vacation Scheduler Application is designed to help users plan and manag
 
 The signed APK is deployed to Android version 26 and above. It targets Android version 34.
 
-## Repository
-
-For more information and to contribute to the project, visit the Git repository:
-[GitLab Repository](https://gitlab.com/wgu-gitlab-environment/student-repos/rgar900/d308-mobile-application-development-android/-/tree/working_branch)
+## Images
+![Example image1](images/main.jpg)
+![Example image2](images/vacationList.jpg)
+![Example image3](images/vacationDetails.jpg)
